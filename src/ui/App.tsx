@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import OpacityControl from './components/OpacityControl';
 import PresetButtons from './components/PresetButtons';
+import GradientButtons from './components/GradientButtons';
 import './styles.css';
 
 const App: React.FC = () => {
@@ -20,6 +21,21 @@ const App: React.FC = () => {
       pluginMessage: {
         type: 'create-scrim',
         color,
+        opacity
+      }
+    }, '*');
+  };
+
+  const handleCreateGradient = (
+    color: 'black' | 'white',
+    direction: 'top-to-bottom' | 'bottom-to-top',
+    opacity: number
+  ) => {
+    parent.postMessage({
+      pluginMessage: {
+        type: 'create-gradient',
+        color,
+        direction,
         opacity
       }
     }, '*');
@@ -45,9 +61,7 @@ const App: React.FC = () => {
 
       <section className="section">
         <h2 className="section-title">Gradient Scrims</h2>
-        <p className="placeholder-text">
-          Gradient options will be implemented in Phase 3
-        </p>
+        <GradientButtons opacity={opacity} onCreateGradient={handleCreateGradient} />
       </section>
 
       <section className="section">
