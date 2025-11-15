@@ -6,6 +6,17 @@ figma.showUI(__html__, {
   height: 400,
 });
 
+// Helper function to convert color string to RGB values
+function getColorRGB(color: 'black' | 'white'): { r: number; g: number; b: number } {
+  if (color === 'black') {
+    return { r: 0, g: 0, b: 0 };
+  } else if (color === 'white') {
+    return { r: 1, g: 1, b: 1 };
+  }
+  // Default to black if invalid
+  return { r: 0, g: 0, b: 0 };
+}
+
 // Message handler to receive messages from the UI
 figma.ui.onmessage = (msg) => {
   if (msg.type === 'ready') {
@@ -19,6 +30,22 @@ figma.ui.onmessage = (msg) => {
       return;
     }
 
+    // Extract and validate color and opacity parameters
+    const color = msg.color || 'black';
+    const opacity = msg.opacity !== undefined ? msg.opacity : 50;
+
+    // Validate color parameter
+    if (color !== 'black' && color !== 'white') {
+      figma.notify('Invalid color. Must be "black" or "white".', { error: true });
+      return;
+    }
+
+    // Validate opacity parameter
+    if (typeof opacity !== 'number' || opacity < 0 || opacity > 100) {
+      figma.notify('Invalid opacity. Must be a number between 0 and 100.', { error: true });
+      return;
+    }
+
     const selection = figma.currentPage.selection[0];
 
     // Get the bounds of the selected layer
@@ -26,17 +53,24 @@ figma.ui.onmessage = (msg) => {
 
     // Create a rectangle scrim
     const scrim = figma.createRectangle();
-    scrim.name = 'Scrim - Black 50%';
+
+    // Create dynamic scrim name
+    const colorName = color.charAt(0).toUpperCase() + color.slice(1);
+    scrim.name = `Scrim - ${colorName} ${opacity}%`;
+
     scrim.x = x;
     scrim.y = y;
     scrim.resize(width, height);
 
-    // Set fill color (black with 50% opacity as placeholder)
+    // Get RGB color values
+    const rgbColor = getColorRGB(color);
+
+    // Set fill color with dynamic color and opacity
     scrim.fills = [
       {
         type: 'SOLID',
-        color: { r: 0, g: 0, b: 0 },
-        opacity: 0.5,
+        color: rgbColor,
+        opacity: opacity / 100, // Convert percentage to 0-1 scale
       },
     ];
 
@@ -47,7 +81,7 @@ figma.ui.onmessage = (msg) => {
     const selectionIndex = figma.currentPage.children.indexOf(selection);
     figma.currentPage.insertChild(selectionIndex + 1, scrim);
 
-    figma.notify('Scrim created successfully!');
+    figma.notify(`${colorName} scrim created at ${opacity}% opacity!`);
   }
 
   if (msg.type === 'cancel') {

@@ -1,14 +1,28 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import OpacityControl from './components/OpacityControl';
+import PresetButtons from './components/PresetButtons';
 import './styles.css';
 
 const App: React.FC = () => {
+  const [opacity, setOpacity] = useState(50);
+
   useEffect(() => {
     // Notify plugin code that UI is ready
     parent.postMessage({ pluginMessage: { type: 'ready' } }, '*');
   }, []);
 
-  const handleCreateScrim = () => {
-    parent.postMessage({ pluginMessage: { type: 'create-scrim' } }, '*');
+  const handleOpacityChange = (value: number) => {
+    setOpacity(value);
+  };
+
+  const handleCreateScrim = (color: 'black' | 'white', opacity: number) => {
+    parent.postMessage({
+      pluginMessage: {
+        type: 'create-scrim',
+        color,
+        opacity
+      }
+    }, '*');
   };
 
   const handleCancel = () => {
@@ -21,21 +35,12 @@ const App: React.FC = () => {
 
       <section className="section">
         <h2 className="section-title">Preset Scrims</h2>
-        <p className="placeholder-text">
-          Preset buttons will be implemented in Phase 2
-        </p>
-        <div className="button-group">
-          <button className="button button-primary" onClick={handleCreateScrim}>
-            Test: Create Scrim
-          </button>
-        </div>
+        <PresetButtons opacity={opacity} onCreateScrim={handleCreateScrim} />
       </section>
 
       <section className="section">
         <h2 className="section-title">Opacity Control</h2>
-        <p className="placeholder-text">
-          Opacity controls will be implemented in Phase 2
-        </p>
+        <OpacityControl opacity={opacity} onChange={handleOpacityChange} />
       </section>
 
       <section className="section">
